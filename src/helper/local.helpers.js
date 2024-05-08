@@ -1,11 +1,8 @@
 /** @format */
 const moment = require("moment");
 
-const base_url = `https://apigracesresorts.q4hosting.com/`;
-const front_base_url = `https://gracesresorts.q4hosting.com/`;
-
-// const base_url = `http://localhost:8712/`;
-// const front_base_url = `http://localhost:3000/`;
+const base_url = `http://localhost:8713/`;
+const front_base_url = `http://localhost:3000/`;
 
 const capitalizeStr = (value) =>
   value[0].toUpperCase() + value.slice(1).toLowerCase();

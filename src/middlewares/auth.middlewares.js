@@ -1,6 +1,5 @@
-const { verifyJWTToken} = require("../helper/jwt.helpers");
+const { verifyToken: verifyJWTToken } = require("../helper/jwt.helpers");
 const { sendResponse } = require("../helper/local.helpers");
-
 
 const verifyToken = (req, res, next) => {
   const auth = req.headers.authorization;

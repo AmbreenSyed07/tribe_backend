@@ -324,7 +324,6 @@ const guessExtensionFromType = async (type, proposedExtension = "") => {
     extension in mimes &&
     mimes[extension].includes(type.toString())
   ) {
-    console.log(extension);
     return extension;
   }
 

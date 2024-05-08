@@ -1,10 +1,21 @@
 const { asyncErrorHandler } = require("../helper/async-error.helper");
 const { hashPassword, comparePassword } = require("../helper/bcrypt.helpers");
-const { isNotEmpty, isEmail, isPassword } = require("../helper/validate.helpers");
-const {fileUpload } = require("../helper/upload.helpers");
+const {
+  isNotEmpty,
+  isEmail,
+  isPassword,
+} = require("../helper/validate.helpers");
+const { fileUpload } = require("../helper/upload.helpers");
 const { sendResponse } = require("../helper/local.helpers");
-const { findUserByEmail, createUser, updateCustomerById } = require("../service/user.service");
+const {
+  findUserByEmail,
+  createUser,
+  updateCustomerById,
+  saveOtp,
+} = require("../service/user.service");
 const { createToken } = require("../helper/jwt.helpers");
+const { getLoginOTPVerificationBody } = require("../views/email.views");
+const { generateUniqueOtp } = require("../helper/otp.helpers");
 
 const logInUser = async (req, res) => {
   return asyncErrorHandler(async () => {
@@ -16,18 +27,38 @@ const logInUser = async (req, res) => {
     }
     const user = await findUserByEmail(email);
 
-    if (
-      !user ||
-      !comparePassword(password, user.password)
-    ) {
+    if (!user || !comparePassword(password, user.password)) {
       return sendResponse(res, 401, false, "Invalid credentials.");
     }
 
     // Directly use customer.password instead of redeclaring it
-    const { password: hashPassword,followers,following, ...userWithoutPassword } = user;
+    const {
+      password: hashPassword,
+      followers,
+      following,
+      ...userWithoutPassword
+    } = user;
     const token = createToken({
       ...userWithoutPassword,
     });
+
+    const otp = await generateUniqueOtp();
+    // return
+    // let optInfo = { userId: userWithoutPassword._id, otp };
+    // let savedOtp = await saveOtp(optInfo);
+    // if (!savedOtp) {
+    //   return sendResponse(res, 400, false, "Something went wrong.");
+    // } else {
+    //   let to = email;
+    //   let subject = "Secure Your Login - Verification Code - Tribebond";
+    //   let body = getLoginOTPVerificationBody({
+    //     otp,
+    //     firstName: userWithoutPassword.firstName,
+    //     lastName: userWithoutPassword.lastName,
+    //   });
+
+    //   await sendEmail(to, subject, body);
+    // }
 
     return sendResponse(
       res,
@@ -53,8 +84,7 @@ const registerUser = async (req, res) => {
       religion,
       longitude,
       latitude,
-      } = req.body;
-      console.log(req.files)
+    } = req.body;
     const profilePicture = req.files && req.files.profilePicture;
 
     if (
@@ -78,6 +108,13 @@ const registerUser = async (req, res) => {
         400,
         false,
         "Please enter a valid email address."
+      );
+    } else if (!isPassword(password)) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "Password should be at least 6 digits long."
       );
     } else if (password != confirmPwd) {
       return sendResponse(res, 400, false, "Your passwords do not match.");
@@ -109,8 +146,7 @@ const registerUser = async (req, res) => {
       if (!user) {
         return sendResponse(res, 400, false, "Unable to signup.");
       } else {
-          let profile_pic;
-          console.log(profilePicture);
+        let profile_pic;
         if (profilePicture) {
           const newFile = await fileUpload(
             profilePicture,
@@ -141,6 +177,20 @@ const registerUser = async (req, res) => {
             );
           }
         }
+
+        // const otp = await generateUniqueOtp();
+        // let optInfo = { userId: user._id, otp };
+        // let savedOtp = await saveOtp(optInfo);
+        // if (!savedOtp) {
+        //   return sendResponse(res, 400, false, "Something went wrong.");
+        // } else {
+        //   let to = email;
+        //   let subject = "Secure Your Login - Verification Code - Tribebond";
+        //   let body = getRegisterOTPVerificationBody();
+
+        //   await sendEmail(to, subject, body);
+        // }
+        //
         return sendResponse(res, 200, "User registered successfully.");
       }
     }
